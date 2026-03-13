@@ -1,4 +1,4 @@
-let SOCKET_SERVER = process.env.WS_SERVER || "wss://explorer.elbunkerbitcoin.com/ws";
+let SOCKET_SERVER = process.env.REACT_APP_WS_SERVER || "wss://explorer.elbunkerbitcoin.com/ws";
 let SUFFIX = ""
 let API_SERVER = process.env.REACT_APP_API_SERVER || ""
 let ADDRESS_PREFIX = "bnet:"

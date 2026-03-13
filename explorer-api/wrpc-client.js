@@ -2,81 +2,101 @@ const WebSocket = require('ws');
 const EventEmitter = require('events');
 
 // RpcApiOps enum values from rpc/core/src/api/ops.rs
+// serde(rename_all = "camelCase") — server expects camelCase strings, not numbers
 const RpcApiOps = {
     // Control
-    Subscribe: 3,
-    Unsubscribe: 4,
+    Subscribe: 'subscribe',
+    Unsubscribe: 'unsubscribe',
 
     // Subscriptions
-    NotifyBlockAdded: 10,
-    NotifyNewBlockTemplate: 11,
-    NotifyUtxosChanged: 12,
-    NotifyPruningPointUtxoSetOverride: 13,
-    NotifyFinalityConflict: 14,
-    NotifyVirtualDaaScoreChanged: 16,
-    NotifyVirtualChainChanged: 17,
-    NotifySinkBlueScoreChanged: 18,
+    NotifyBlockAdded: 'notifyBlockAdded',
+    NotifyNewBlockTemplate: 'notifyNewBlockTemplate',
+    NotifyUtxosChanged: 'notifyUtxosChanged',
+    NotifyPruningPointUtxoSetOverride: 'notifyPruningPointUtxoSetOverride',
+    NotifyFinalityConflict: 'notifyFinalityConflict',
+    NotifyVirtualDaaScoreChanged: 'notifyVirtualDaaScoreChanged',
+    NotifyVirtualChainChanged: 'notifyVirtualChainChanged',
+    NotifySinkBlueScoreChanged: 'notifySinkBlueScoreChanged',
 
-    // Notifications
-    BlockAddedNotification: 60,
-    VirtualChainChangedNotification: 61,
-    FinalityConflictNotification: 62,
-    FinalityConflictResolvedNotification: 63,
-    UtxosChangedNotification: 64,
-    SinkBlueScoreChangedNotification: 65,
-    VirtualDaaScoreChangedNotification: 66,
-    PruningPointUtxoSetOverrideNotification: 67,
-    NewBlockTemplateNotification: 68,
+    // Notifications (server -> client)
+    BlockAddedNotification: 'blockAddedNotification',
+    VirtualChainChangedNotification: 'virtualChainChangedNotification',
+    FinalityConflictNotification: 'finalityConflictNotification',
+    FinalityConflictResolvedNotification: 'finalityConflictResolvedNotification',
+    UtxosChangedNotification: 'utxosChangedNotification',
+    SinkBlueScoreChangedNotification: 'sinkBlueScoreChangedNotification',
+    VirtualDaaScoreChangedNotification: 'virtualDaaScoreChangedNotification',
+    PruningPointUtxoSetOverrideNotification: 'pruningPointUtxoSetOverrideNotification',
+    NewBlockTemplateNotification: 'newBlockTemplateNotification',
 
     // RPC Methods
-    Ping: 110,
-    GetMetrics: 111,
-    GetSystemInfo: 112,
-    GetConnections: 113,
-    GetServerInfo: 114,
-    GetSyncStatus: 115,
-    GetCurrentNetwork: 116,
-    SubmitBlock: 117,
-    GetBlockTemplate: 118,
-    GetPeerAddresses: 119,
-    GetSink: 120,
-    GetMempoolEntry: 121,
-    GetMempoolEntries: 122,
-    GetConnectedPeerInfo: 123,
-    AddPeer: 124,
-    SubmitTransaction: 125,
-    GetBlock: 126,
-    GetSubnetwork: 127,
-    GetVirtualChainFromBlock: 128,
-    GetBlocks: 129,
-    GetBlockCount: 130,
-    GetBlockDagInfo: 131,
-    ResolveFinalityConflict: 132,
-    Shutdown: 133,
-    GetHeaders: 134,
-    GetUtxosByAddresses: 135,
-    GetBalanceByAddress: 136,
-    GetBalancesByAddresses: 137,
-    GetSinkBlueScore: 138,
-    Ban: 139,
-    Unban: 140,
-    GetInfo: 141,
-    EstimateNetworkHashesPerSecond: 142,
-    GetMempoolEntriesByAddresses: 143,
-    GetCoinSupply: 144,
-    GetDaaScoreTimestampEstimate: 145,
-    SubmitTransactionReplacement: 146,
-    GetFeeEstimate: 147,
-    GetFeeEstimateExperimental: 148,
-    GetCurrentBlockColor: 149,
-    GetUtxoReturnAddress: 150,
-    GetVirtualChainFromBlockV2: 151,
+    Ping: 'ping',
+    GetMetrics: 'getMetrics',
+    GetSystemInfo: 'getSystemInfo',
+    GetConnections: 'getConnections',
+    GetServerInfo: 'getServerInfo',
+    GetSyncStatus: 'getSyncStatus',
+    GetCurrentNetwork: 'getCurrentNetwork',
+    SubmitBlock: 'submitBlock',
+    GetBlockTemplate: 'getBlockTemplate',
+    GetPeerAddresses: 'getPeerAddresses',
+    GetSink: 'getSink',
+    GetMempoolEntry: 'getMempoolEntry',
+    GetMempoolEntries: 'getMempoolEntries',
+    GetConnectedPeerInfo: 'getConnectedPeerInfo',
+    AddPeer: 'addPeer',
+    SubmitTransaction: 'submitTransaction',
+    GetBlock: 'getBlock',
+    GetSubnetwork: 'getSubnetwork',
+    GetVirtualChainFromBlock: 'getVirtualChainFromBlock',
+    GetBlocks: 'getBlocks',
+    GetBlockCount: 'getBlockCount',
+    GetBlockDagInfo: 'getBlockDagInfo',
+    ResolveFinalityConflict: 'resolveFinalityConflict',
+    Shutdown: 'shutdown',
+    GetHeaders: 'getHeaders',
+    GetUtxosByAddresses: 'getUtxosByAddresses',
+    GetBalanceByAddress: 'getBalanceByAddress',
+    GetBalancesByAddresses: 'getBalancesByAddresses',
+    GetSinkBlueScore: 'getSinkBlueScore',
+    Ban: 'ban',
+    Unban: 'unban',
+    GetInfo: 'getInfo',
+    EstimateNetworkHashesPerSecond: 'estimateNetworkHashesPerSecond',
+    GetMempoolEntriesByAddresses: 'getMempoolEntriesByAddresses',
+    GetCoinSupply: 'getCoinSupply',
+    GetDaaScoreTimestampEstimate: 'getDaaScoreTimestampEstimate',
+    SubmitTransactionReplacement: 'submitTransactionReplacement',
+    GetFeeEstimate: 'getFeeEstimate',
+    GetFeeEstimateExperimental: 'getFeeEstimateExperimental',
+    GetCurrentBlockColor: 'getCurrentBlockColor',
+    GetUtxoReturnAddress: 'getUtxoReturnAddress',
+    GetVirtualChainFromBlockV2: 'getVirtualChainFromBlockV2',
 
     // Smart Contracts
-    GetContractState: 152,
-    GetContractCode: 153,
-    EstimateContractGas: 154,
+    GetContractState: 'getContractState',
+    GetContractCode: 'getContractCode',
+    EstimateContractGas: 'estimateContractGas',
 };
+
+// Map notifyOp strings to Scope enum variants (PascalCase, as expected by serde)
+const NotifyOpToScopeName = {
+    [RpcApiOps.NotifyBlockAdded]: 'BlockAdded',
+    [RpcApiOps.NotifyNewBlockTemplate]: 'NewBlockTemplate',
+    [RpcApiOps.NotifyUtxosChanged]: 'UtxosChanged',
+    [RpcApiOps.NotifyPruningPointUtxoSetOverride]: 'PruningPointUtxoSetOverride',
+    [RpcApiOps.NotifyFinalityConflict]: 'FinalityConflict',
+    [RpcApiOps.NotifyVirtualDaaScoreChanged]: 'VirtualDaaScoreChanged',
+    [RpcApiOps.NotifyVirtualChainChanged]: 'VirtualChainChanged',
+    [RpcApiOps.NotifySinkBlueScoreChanged]: 'SinkBlueScoreChanged',
+};
+
+function _notifyOpToScope(notifyOp, params = {}) {
+    const scopeName = NotifyOpToScopeName[notifyOp];
+    if (!scopeName) throw new Error(`Unknown notify op: ${notifyOp}`);
+    // Scope is a serde enum: { "VariantName": { ...inner_scope } }
+    return { [scopeName]: params };
+}
 
 class WrpcClient extends EventEmitter {
     constructor(url) {
@@ -141,7 +161,7 @@ class WrpcClient extends EventEmitter {
     }
 
     _handleMessage(msg) {
-        const { id, op, data, error } = msg;
+        const { id, method: op, params: data, error } = msg;
 
         // If it has an id, it's a response to a pending request
         if (id !== undefined && this.pending.has(id)) {
@@ -157,8 +177,8 @@ class WrpcClient extends EventEmitter {
             return;
         }
 
-        // Notification (no id, has op in 60-68 range)
-        if (op >= 60 && op <= 68) {
+        // Notification (no id, has a notification method string)
+        if (op && typeof op === 'string' && op.endsWith('Notification')) {
             this.emit('notification', { op, data });
 
             // Emit specific notification events
@@ -214,26 +234,26 @@ class WrpcClient extends EventEmitter {
 
             this.pending.set(id, { resolve, reject, timeout });
 
-            const msg = JSON.stringify({ id, op, data });
+            const msg = JSON.stringify({ id, method: op, params: data });
             this.ws.send(msg);
         });
     }
 
     /**
-     * Subscribe to a notification scope.
-     * @param {number} notifyOp - The notify operation (e.g. NotifyBlockAdded = 10)
-     * @param {object} params - Subscription parameters
+     * Subscribe to a notification scope via the "subscribe" RPC method.
+     * The server expects a Scope enum variant as params, e.g. {"BlockAdded": {}}
      */
     async subscribe(notifyOp, params = {}) {
-        return this.request(notifyOp, { command: 0, ...params }); // 0 = NOTIFY_START
+        const scope = _notifyOpToScope(notifyOp, params);
+        return this.request(RpcApiOps.Subscribe, scope);
     }
 
     /**
-     * Unsubscribe from a notification scope.
-     * @param {number} notifyOp - The notify operation
+     * Unsubscribe from a notification scope via the "unsubscribe" RPC method.
      */
     async unsubscribe(notifyOp, params = {}) {
-        return this.request(notifyOp, { command: 1, ...params }); // 1 = NOTIFY_STOP
+        const scope = _notifyOpToScope(notifyOp, params);
+        return this.request(RpcApiOps.Unsubscribe, scope);
     }
 
     close() {
